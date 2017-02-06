@@ -13,8 +13,8 @@
 	</style>
 </head>
 <body>
-<a href="<?php echo $banner['href']; ?>" target="_blank">
-	<img src="<?php echo $banner['src']; ?>" width="<?php echo $banner['width']; ?>" height="<?php echo $banner['height']; ?>" alt="Promo">
+<a href="<?php echo $bannerView['href']; ?>" target="_blank">
+	<img src="<?php echo $bannerView['src']; ?>" width="<?php echo $bannerView['width']; ?>" height="<?php echo $bannerView['height']; ?>" alt="Promo">
 </a>
 </body>
 </html>

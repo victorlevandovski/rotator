@@ -1,34 +1,24 @@
 <?php
 
-/**
- * First let's check if rotator ID is provided
- */
+$rotatorId = isset($_GET['rid']) ? $_GET['rid'] : '';
+$bannerId = isset($_GET['bid']) ? intval($_GET['bid']) : 0;
 
-$rid = isset($_GET['rid']) ? $_GET['rid'] : '';
-$bid = isset($_GET['bid']) ? intval($_GET['bid']) : 0;
-
-if (!preg_match('/^[0-9a-f]{16}$/', $rid)) {
+if (!preg_match('/^[0-9a-f]{16}$/', $rotatorId)) {
 	exit('Please set a correct rotator ID');
 }
 
-
-/**
- * Then include some files
- */
-
 require('config.php');
-require('include/banner_rotator.class.php');
-require('include/banner_rotator_storage.class.php');
+require('src/require.php');
 
 
-/**
- * Now we can process click and redirect user somewhere
- */
+$repository = new MySqlBannerRotatorRepository(new XCacheCachingEngine());
 
-$storage = new BannerRotatorStorage($rid);
+try {
+    $rotator = $repository->rotator($rotatorId);
+} catch (Exception $e) {
+    die($e->getMessage());
+}
 
-$rotator = new BannerRotator($storage);
-
-$url = $rotator->click($bid);
+$url = $rotator->click($bannerId);
 
 header('Location: ' . $url);

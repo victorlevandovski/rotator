@@ -1,37 +1,35 @@
 <?php
 
-/**
- * First let's check if rotator ID is provided
- */
+$rotatorId = isset($_GET['rid']) ? $_GET['rid'] : '';
 
-$rid = isset($_GET['rid']) ? $_GET['rid'] : '';
+if (!preg_match('/^[0-9a-f]{16}$/', $rotatorId)) {
+    die('Please set a correct rotator ID');
+}
 
-if (!preg_match('/^[0-9a-f]{16}$/', $rid)) {
-	exit('Please set a correct rotator ID');
+require('config.php');
+require('src/require.php');
+
+
+// Rotation
+
+$repository = new MySqlBannerRotatorRepository(new XCacheCachingEngine());
+
+try {
+    $rotator = $repository->rotator($rotatorId);
+    $banner = $rotator->rotate();
+} catch (Exception $e) {
+    die('<!--'.$e->getMessage().'-->');
 }
 
 
-/**
- * Then include some files
- */
+// Rendering
 
-require('config.php');
-require('include/banner_rotator.class.php');
-require('include/banner_rotator_storage.class.php');
-
-
-/**
- * And now we are ready to load and "rotate" some banners
- */
-
-$storage = new BannerRotatorStorage($rid);
-
-$rotator = new BannerRotator($storage);
-
-$banner = $rotator->rotate();
-
-/**
- * Finally, we can render the template with the selected banner
- */
+/** @var Banner $banner */
+$bannerView = [
+    'href' => "click.php?rid={$rotatorId}&amp;bid={$banner->id()}",
+    'src' => $banner->image(),
+    'width' => $banner->width(),
+    'height' => $banner->height(),
+];
 
 include 'template.php';
