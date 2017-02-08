@@ -36,35 +36,28 @@ class MySqlBannerRotatorRepository extends RotatorRepository
         $query = "SELECT url, subId, userId FROM banner_rotator WHERE rotatorId='{$rotatorId}'";
         $res = mysqli_query($this->mysqli, $query);
 
+        $rotator = null;
+
         if ($row = mysqli_fetch_assoc($res)) {
-            return [
+            $rotator = [
                 'id' => $rotatorId,
                 'url' => $row['url'],
                 'sub_id' => $row['subId'],
                 'user_id' => $row['userId'],
             ];
+
+            $query = "SELECT brs.weight, brp.id, brp.image, brp.size, brp.quality
+                FROM banner_rotator_stat brs
+                JOIN banner_rotator_promo brp ON brp.id=brs.banner_id
+                WHERE brs.weight>0 AND brs.rotator_id='{$rotatorId}'";
+            $res = mysqli_query($this->mysqli, $query);
+
+            while ($row = mysqli_fetch_assoc($res)) {
+                $rotator['promo'][] = $row;
+            }
         }
 
-        return null;
-    }
-
-    protected function promoOfRotatorId($rotatorId)
-    {
-        $this->connect();
-
-        $query = "SELECT brs.weight, brp.id, brp.image, brp.size, brp.quality
-            FROM banner_rotator_stat brs
-            JOIN banner_rotator_promo brp ON brp.id=brs.banner_id
-            WHERE brs.weight>0 AND brs.rotator_id='{$rotatorId}'";
-        $res = mysqli_query($this->mysqli, $query);
-
-        $promo = [];
-
-        while ($row = mysqli_fetch_assoc($res)) {
-            $promo[] = $row;
-        }
-
-        return $promo;
+        return $rotator;
     }
 
     protected function connect()

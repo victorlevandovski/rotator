@@ -24,12 +24,4 @@ try {
 
 // Rendering
 
-/** @var Banner $banner */
-$bannerView = [
-    'href' => "click.php?rid={$rotatorId}&amp;bid={$banner->id()}",
-    'src' => $banner->image(),
-    'width' => $banner->width(),
-    'height' => $banner->height(),
-];
-
 include 'template.php';

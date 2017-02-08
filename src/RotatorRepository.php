@@ -22,62 +22,31 @@ abstract class RotatorRepository
      */
     public function rotator($rotatorId)
     {
-        if (!preg_match('/^[0-9a-f]{16}$/', $rotatorId)) {
-            throw new Exception('Invalid rotator ID');
-        }
-
-        $key = $this->cachePrefix . 'r' . $rotatorId;
+        $key = $this->cachePrefix . $rotatorId;
 
         $rotator = $this->cachingEngine->get($key);
 
-        if ($rotator === null) {
+        if ($rotator === null) {echo 'reloaded from db';
             $rotator = $this->rotatorOfId($rotatorId);
+
+            if ($rotator === null) {
+                $rotator = ['id' => 0];
+            }
+
+            $this->cachingEngine->set($key, $rotator, self::CACHE_TIMEOUT);
         }
 
-        if ($rotator === null) {
-            $rotator = [
-                'id' => $rotatorId,
-                'url' => null,
-                'sub_id' => 0,
-                'user_id' => 0,
-            ];
-        }
-
-        $this->cachingEngine->set($key, $rotator, self::CACHE_TIMEOUT);
-
-        if ($rotator['user_id'] == 0) {
+        if (!$rotator['id']) {
             throw new Exception('Invalid rotator ID');
         }
 
-        $rotator['promo'] = $this->promo($rotatorId);
+        if (!$rotator['promo']) {
+            throw new Exception('No promo for specified rotator');
+        }
 
         return $this->assembleFromArray($rotator);
     }
 
-    protected function promo($rotatorId)
-    {
-        $key = $this->cachePrefix . 'p' . $rotatorId;
-
-        $promo = $this->cachingEngine->get($key);
-
-        if ($promo !== null) {
-            return $promo;
-        }
-
-        $promo = $this->promoOfRotatorId($rotatorId);
-
-        if ($promo === null) {
-            throw new Exception('No promo for specified rotator');
-        }
-
-        $this->cachingEngine->set($key, $promo, self::CACHE_TIMEOUT);
-
-        return $promo;
-    }
-
-    abstract protected function assembleFromArray($rotator);
-
     abstract protected function rotatorOfId($rotatorId);
-
-    abstract protected function promoOfRotatorId($rotatorId);
+    abstract protected function assembleFromArray($rotator);
 }
